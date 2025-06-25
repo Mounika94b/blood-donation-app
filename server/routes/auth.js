@@ -77,7 +77,16 @@ router.post('/forgot-password', async (req, res) => {
     res.status(500).json({ message: "Error generating reset token" });
   }
 });
-
+// -------------------- Get All Users --------------------
+router.get('/all-users', async (req, res) => {
+  try {
+    const users = await User.find({}, '-password -resetToken -resetTokenExpiry'); // exclude sensitive fields
+    res.json(users);
+  } catch (err) {
+    console.error("Get All Users Error:", err);
+    res.status(500).json({ message: "Error fetching users" });
+  }
+});
 
 module.exports = router;
 

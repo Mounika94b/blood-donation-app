@@ -230,19 +230,42 @@
     }
   });
 
-  function showDashboard() {
-    try {
-      const userStr = localStorage.getItem('user');
-      if (!userStr) throw new Error('No user');
-      const user = JSON.parse(userStr);
-      document.getElementById('welcome').innerText =
-        `Welcome, ${user.name} (${user.role}) from ${user.city}, Blood Group: ${user.bloodGroup}, Contact: ${user.contactNumber}`;
-      showView('dashboard');
-    } catch (err) {
-      alert('Please login first');
-      showView('login');
-    }
+  async function showDashboard() {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('Please login first');
+    showView('login');
+    return;
   }
+
+  try {
+    const res = await fetch('https://blood-donation-app-93sd.onrender.com/api/auth/all-users', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const users = await res.json();
+
+    let content = `<h3>All Registered Users</h3>`;
+    users.forEach(user => {
+      content += `
+        <div style="margin-bottom: 12px; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+          <strong>${user.name}</strong> (${user.role})<br/>
+          City: ${user.city}<br/>
+          Blood Group: ${user.bloodGroup}<br/>
+          Contact: ${user.contactNumber}
+        </div>
+      `;
+    });
+
+    document.getElementById('welcome').innerHTML = content;
+    showView('dashboard');
+  } catch (err) {
+    alert('Error loading dashboard');
+    showView('login');
+  }
+}
+
+  
 
   window.onload = () => {
     const token = localStorage.getItem('token');
