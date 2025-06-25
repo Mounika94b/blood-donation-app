@@ -194,7 +194,7 @@
       contactNumber: e.target.contactNumber.value,
       role: e.target.role.value
     };
-    const res = await fetch('http://localhost:5000/api/auth/register', {
+    const res = await fetch('https://blood-donation-app-93sd.onrender.com/api/auth/register', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data)
@@ -212,7 +212,7 @@
       email: e.target.loginEmail.value,
       password: e.target.loginPassword.value
     };
-    const res = await fetch('http://localhost:5000/api/auth/login', {
+    const res = await fetch('https://blood-donation-app-93sd.onrender.com/api/auth/login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data)
@@ -266,7 +266,7 @@ document.getElementById('forgotPasswordForm').addEventListener('submit', async (
   e.preventDefault();
   const email = document.getElementById('forgotEmail').value;
 
-  const res = await fetch('https://your-backend-url.onrender.com/forgot-password', {
+  const res = await fetch('https://blood-donation-app-93sd.onrender.com/forgot-password', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email })
@@ -288,7 +288,7 @@ document.getElementById('resetPasswordForm').addEventListener('submit', async (e
   const token = document.getElementById('resetToken').value;
   const newPassword = document.getElementById('newPassword').value;
 
-  const res = await fetch('https://your-backend-url.onrender.com/reset-password', {
+  const res = await fetch('https://blood-donation-app-93sd.onrender.com/reset-password', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token, newPassword })
