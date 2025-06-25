@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Blood Donation App</title>
+  <title>Blood Donation Hub</title>
   <style>
     body {
       margin: 0;
@@ -105,7 +105,7 @@
 
   <!-- Views -->
   <div id="home" class="view active">
-    <h1>Welcome to Blood Donation App</h1>
+    <h1>Welcome to Blood Donation Hub</h1>
     <p>Be a hero. Save lives. Donate blood today.</p>
   </div>
 
@@ -133,7 +133,10 @@
     <form id="loginForm">
       <input type="email" id="loginEmail" placeholder="Email" required /><br/>
       <input type="password" id="loginPassword" placeholder="Password" required /><br/>
-      
+      <p>
+  <a href="#" onclick="showView('forgotPassword')">Forgot Password?</a>
+</p>
+
 
       <button type="submit">Login</button>
     </form>
@@ -145,6 +148,25 @@
     <h2>Dashboard</h2>
     <div id="welcome"></div>
   </div>
+  <div id="forgotPassword" class="view">
+  <h2>Forgot Password</h2>
+  <form id="forgotPasswordForm">
+    <input type="email" id="forgotEmail" placeholder="Enter your email" required /><br/><br/>
+    <button type="submit">Send Reset Link</button>
+  </form>
+  <p id="forgotMessage"></p>
+</div>
+
+<div id="resetPassword" class="view">
+  <h2>Reset Password</h2>
+  <form id="resetPasswordForm">
+    <input type="text" id="resetToken" placeholder="Enter reset token" required /><br/>
+    <input type="password" id="newPassword" placeholder="Enter new password" required /><br/><br/>
+    <button type="submit">Reset Password</button>
+  </form>
+  <p id="resetMessage"></p>
+</div>
+
 
 <script>
   function showView(viewId) {
@@ -239,8 +261,42 @@
     }
   };
   // Forgot Password form submit
+  // Forgot Password
+document.getElementById('forgotPasswordForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('forgotEmail').value;
 
+  const res = await fetch('https://your-backend-url.onrender.com/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
 
+  const result = await res.json();
+  document.getElementById('forgotMessage').innerText = result.message || 'Something went wrong';
+
+  if (result.token) {
+    // show reset password view
+    showView('resetPassword');
+    document.getElementById('resetToken').value = result.token; // auto-fill token for testing
+  }
+});
+
+// Reset Password
+document.getElementById('resetPasswordForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const token = document.getElementById('resetToken').value;
+  const newPassword = document.getElementById('newPassword').value;
+
+  const res = await fetch('https://your-backend-url.onrender.com/reset-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, newPassword })
+  });
+
+  const result = await res.json();
+  document.getElementById('resetMessage').innerText = result.message || 'Something went wrong';
+});
 </script>
 
 </body>

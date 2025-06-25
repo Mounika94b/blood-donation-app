@@ -30,8 +30,17 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['donor', 'requester'],
     required: true
+  },
+
+  // 👇 Add these two fields for password reset functionality
+  resetToken: {
+    type: String
+  },
+  resetTokenExpiry: {
+    type: Date
   }
 });
 
 module.exports = mongoose.model('user', userSchema);
+
 

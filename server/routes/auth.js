@@ -49,6 +49,34 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Server error during login' });
   }
 });
+// -------------------- Forgot Password --------------------
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(200).json({ message: "If this email is registered, a reset link will be sent." });
+    }
+
+    // Generate a token
+    const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+
+    // Save token and expiry in the user record
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = Date.now() + 15 * 60 * 1000; // 15 minutes
+    await user.save();
+
+    // In real app: Send via email
+    res.status(200).json({
+      message: "Reset token generated successfully. Use it within 15 minutes.",
+      token: resetToken // Only for testing; don’t send in production
+    });
+  } catch (err) {
+    console.error('Forgot Password Error:', err);
+    res.status(500).json({ message: "Error generating reset token" });
+  }
+});
 
 
 module.exports = router;
