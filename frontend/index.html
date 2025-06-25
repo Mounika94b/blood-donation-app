@@ -40,13 +40,6 @@
 
     .view {
       display: none;
-    }
-
-    .active {
-      display: block;
-    }
-
-    .view {
       background: white;
       padding: 30px;
       margin-top: 30px;
@@ -57,12 +50,16 @@
       box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
     }
 
+    .active {
+      display: block;
+    }
+
     input, select {
       width: 90%;
       padding: 10px;
       margin: 10px 0;
       border-radius: 6px;
-      border: 2px solid #555; /* dark/bold border */
+      border: 2px solid #555;
       outline: none;
       font-size: 15px;
     }
@@ -87,7 +84,7 @@
       color: #b71c1c;
     }
 
-    #registerMessage, #loginMessage {
+    #registerMessage, #loginMessage, #forgotMessage, #resetMessage {
       color: green;
       margin-top: 10px;
     }
@@ -133,40 +130,35 @@
     <form id="loginForm">
       <input type="email" id="loginEmail" placeholder="Email" required /><br/>
       <input type="password" id="loginPassword" placeholder="Password" required /><br/>
-      <p>
-  <a href="#" onclick="showView('forgotPassword')">Forgot Password?</a>
-</p>
-
-
+      <p><a href="#" onclick="showView('forgotPassword')">Forgot Password?</a></p>
       <button type="submit">Login</button>
     </form>
     <p id="loginMessage"></p>
-  
-
+  </div>
 
   <div id="dashboard" class="view">
     <h2>Dashboard</h2>
     <div id="welcome"></div>
   </div>
+
   <div id="forgotPassword" class="view">
-  <h2>Forgot Password</h2>
-  <form id="forgotPasswordForm">
-    <input type="email" id="forgotEmail" placeholder="Enter your email" required /><br/><br/>
-    <button type="submit">Send Reset Link</button>
-  </form>
-  <p id="forgotMessage"></p>
-</div>
+    <h2>Forgot Password</h2>
+    <form id="forgotPasswordForm">
+      <input type="email" id="forgotEmail" placeholder="Enter your email" required /><br/><br/>
+      <button type="submit">Send Reset Link</button>
+    </form>
+    <p id="forgotMessage"></p>
+  </div>
 
-<div id="resetPassword" class="view">
-  <h2>Reset Password</h2>
-  <form id="resetPasswordForm">
-    <input type="text" id="resetToken" placeholder="Enter reset token" required /><br/>
-    <input type="password" id="newPassword" placeholder="Enter new password" required /><br/><br/>
-    <button type="submit">Reset Password</button>
-  </form>
-  <p id="resetMessage"></p>
-</div>
-
+  <div id="resetPassword" class="view">
+    <h2>Reset Password</h2>
+    <form id="resetPasswordForm">
+      <input type="text" id="resetToken" placeholder="Enter reset token" required /><br/>
+      <input type="password" id="newPassword" placeholder="Enter new password" required /><br/><br/>
+      <button type="submit">Reset Password</button>
+    </form>
+    <p id="resetMessage"></p>
+  </div>
 
 <script>
   const backendUrl = 'https://blood-donation-app-93sd.onrender.com';
@@ -196,15 +188,19 @@
       contactNumber: e.target.contactNumber.value,
       role: e.target.role.value
     };
-    const res = await fetch('https://blood-donation-app-93sd.onrender.com/api/auth/register', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(data)
-    });
-    const result = await res.json();
-    document.getElementById('registerMessage').innerText = result.message || JSON.stringify(result);
-    if (res.ok) {
-      setTimeout(() => showView('login'), 1500);
+    try {
+      const res = await fetch(`https://blood-donation-app-93sd.onrender.com/api/auth/register`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      document.getElementById('registerMessage').innerText = result.message || 'Registration done!';
+      if (res.ok) {
+        setTimeout(() => showView('login'), 1500);
+      }
+    } catch (err) {
+      document.getElementById('registerMessage').innerText = 'Error during registration';
     }
   });
 
@@ -214,44 +210,38 @@
       email: e.target.loginEmail.value,
       password: e.target.loginPassword.value
     };
-    const res = await fetch('https://blood-donation-app-93sd.onrender.com/api/auth/login', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(data)
-    });
-    const result = await res.json();
-    if (res.ok && result.token) {
-      localStorage.setItem('token', result.token);
-      localStorage.setItem('user', JSON.stringify(result.user));
-      document.getElementById('loginMessage').innerText = 'Login successful! Redirecting...';
-      showDashboard();
-    } else {
-      document.getElementById('loginMessage').innerText = result.message || 'Login failed';
+    try {
+      const res = await fetch(`https://blood-donation-app-93sd.onrender.com/api/auth/login`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (res.ok && result.token) {
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('user', JSON.stringify(result.user));
+        document.getElementById('loginMessage').innerText = 'Login successful! Redirecting...';
+        showDashboard();
+      } else {
+        document.getElementById('loginMessage').innerText = result.message || 'Login failed';
+      }
+    } catch (err) {
+      document.getElementById('loginMessage').innerText = 'Login error';
     }
   });
 
   function showDashboard() {
-    let user = null;
     try {
       const userStr = localStorage.getItem('user');
-      if (!userStr) throw new Error('No user data');
-      user = JSON.parse(userStr);
+      if (!userStr) throw new Error('No user');
+      const user = JSON.parse(userStr);
+      document.getElementById('welcome').innerText =
+        `Welcome, ${user.name} (${user.role}) from ${user.city}, Blood Group: ${user.bloodGroup}, Contact: ${user.contactNumber}`;
+      showView('dashboard');
     } catch (err) {
       alert('Please login first');
       showView('login');
-      return;
     }
-
-    if (!user || !user.name) {
-      alert('Please login first');
-      showView('login');
-      return;
-    }
-
-    document.getElementById('welcome').innerText =
-      `Welcome, ${user.name} (${user.role}) from ${user.city}, Blood Group: ${user.bloodGroup}, Contact: ${user.contactNumber}`;
-
-    showView('dashboard');
   }
 
   window.onload = () => {
@@ -262,43 +252,43 @@
       showView('home');
     }
   };
-  // Forgot Password form submit
-  // Forgot Password
-document.getElementById('forgotPasswordForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = document.getElementById('forgotEmail').value;
 
-  const res = await fetch('https://blood-donation-app-93sd.onrender.com/forgot-password', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email })
+  document.getElementById('forgotPasswordForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('forgotEmail').value;
+    try {
+      const res = await fetch(`https://blood-donation-app-93sd.onrender.com/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const result = await res.json();
+      document.getElementById('forgotMessage').innerText = result.message || 'Try again.';
+      if (result.token) {
+        showView('resetPassword');
+        document.getElementById('resetToken').value = result.token;
+      }
+    } catch (err) {
+      document.getElementById('forgotMessage').innerText = 'Error sending reset token';
+    }
   });
 
-  const result = await res.json();
-  document.getElementById('forgotMessage').innerText = result.message || 'Something went wrong';
-
-  if (result.token) {
-    // show reset password view
-    showView('resetPassword');
-    document.getElementById('resetToken').value = result.token; // auto-fill token for testing
-  }
-});
-
-// Reset Password
-document.getElementById('resetPasswordForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const token = document.getElementById('resetToken').value;
-  const newPassword = document.getElementById('newPassword').value;
-
-  const res = await fetch('https://blood-donation-app-93sd.onrender.com/reset-password', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token, newPassword })
+  document.getElementById('resetPasswordForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const token = document.getElementById('resetToken').value;
+    const newPassword = document.getElementById('newPassword').value;
+    try {
+      const res = await fetch(`https://blood-donation-app-93sd.onrender.com/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, newPassword })
+      });
+      const result = await res.json();
+      document.getElementById('resetMessage').innerText = result.message || 'Try again';
+    } catch (err) {
+      document.getElementById('resetMessage').innerText = 'Error resetting password';
+    }
   });
-
-  const result = await res.json();
-  document.getElementById('resetMessage').innerText = result.message || 'Something went wrong';
-});
 </script>
 
 </body>
